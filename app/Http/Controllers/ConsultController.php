@@ -7,9 +7,6 @@ use App\Enums\ReceitaFederalEnum;
 
 class ConsultController extends Controller
 {
-
-    const TOKENS = ['Y29tcHVmYWNpbDpjb21wdWZhY2ls'];
-
     public function index(Request $request)
     {
         $params = $request->all();
@@ -21,7 +18,7 @@ class ConsultController extends Controller
         }
 
         if ($request->header('Authorization')) {
-            if (!in_array($request->header('Authorization'), self::TOKENS)) {
+            if ($request->header('Authorization') != env('TOKEN_C4')) {
                 return response()->json(
                     ['message' => 'Você não está autorizado a consumir este recurso'
                 ], 401);
@@ -34,9 +31,15 @@ class ConsultController extends Controller
             ], 404);
         }
 
+        if (!isset($params['key'])) {
+            return response()->json(
+                ['message' => 'Chave não enviada, verifique'
+            ], 404);
+        }
+
         $data = [
             'documento' => $params['document'],
-            'key' => md5(34324) . $params['document'],
+            'key' => $params['key'],
         ];
 
         return $this->getCaptcha($data);
@@ -53,7 +56,7 @@ class ConsultController extends Controller
         }
 
         if ($request->header('Authorization')) {
-            if (!in_array($request->header('Authorization'), self::TOKENS)) {
+            if ($request->header('Authorization') != env('TOKEN_C4')) {
                 return response()->json(
                     ['message' => 'Você não está autorizado a consumir este recurso'
                 ], 401);
@@ -66,7 +69,11 @@ class ConsultController extends Controller
             ], 404);
         }
 
-        $params['key'] = md5(34324) . $params['document'];
+        if (!isset($params['key'])) {
+            return response()->json(
+                ['message' => 'Chave não enviada, verifique'
+            ], 404);
+        }
 
         $result = $this->getInfo($params);
 
